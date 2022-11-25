@@ -18,6 +18,7 @@ async function run() {
 
     try {
         const categoriesCollection = client.db('swapdealDB').collection('categories');
+        const productsCollection = client.db('swapdealDB').collection('products');
 
         //Categories
         app.get('/categories', async (req, res) => {
@@ -25,6 +26,19 @@ async function run() {
             const cursor = categoriesCollection.find(query);
             const categories = await cursor.toArray();
             res.send(categories);
+        });
+
+        //Products
+        app.get('/category/:id', async (req, res) => {
+            //get category
+            const id = req.params.id;
+            const filter = { _id: id };
+            const category = await categoriesCollection.findOne(filter);
+
+            //get category based products
+            const query = { category: category.name };
+            const products = await productsCollection.find(query).toArray();
+            res.send(products);
         });
     }
     finally {
