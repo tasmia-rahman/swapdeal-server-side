@@ -20,6 +20,7 @@ async function run() {
         const categoriesCollection = client.db('swapdealDB').collection('categories');
         const productsCollection = client.db('swapdealDB').collection('products');
         const usersCollection = client.db('swapdealDB').collection('users');
+        const bookingsCollection = client.db('doctorsPortal').collection('bookings');
 
         //Categories
         app.get('/categories', async (req, res) => {
@@ -46,15 +47,55 @@ async function run() {
         app.post('/users', async (req, res) => {
             const user = req.body;
             const filter = { email: user.email };
-            const existingUser = await usersCollection.findOne(filter);
-            if (existingUser) {
-                res.send({ message: 'User already exists' });
+            const existingUser = await usersCollection.find(filter).toArray();
+            if (existingUser.length) {
+                const message = "User already exists!";
+                return res.send({ acknowledged: false, message });
             }
-            else {
-                const result = await usersCollection.insertOne(user);
-                res.send(result);
-            }
+
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
         });
+
+        //User role
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user?.role === 'admin', isSeller: user?.role === 'seller', isBuyer: user?.role === 'buyer' });
+        })
+
+        //Buyers
+        app.get('/buyers', async (req, res) => {
+            const query = { role: 'buyer' };
+            const buyers = await usersCollection.find(query).toArray();
+            res.send(buyers);
+        })
+
+        //Sellers
+        app.get('/sellers', async (req, res) => {
+            const query = { role: 'seller' };
+            const sellers = await usersCollection.find(query).toArray();
+            res.send(sellers);
+        })
+
+        //Bookings
+        // app.post('/bookings', async (req, res) => {
+        //     const booking = req.body;
+        //     console.log(booking);
+        //     const query = {
+        //         email: booking.email,
+        //         // productName: booking.productName
+        //     }
+        //     const alreadyBooked = await bookingsCollection.find(query).toArray();
+        //     if (alreadyBooked.length) {
+        //         const message = "It's already booked!";
+        //         return res.send({ acknowledged: false, message });
+        //     }
+        //     const result = await bookingsCollection.insertOne(booking);
+        //     res.send(result);
+        // });
+
     }
     finally {
 
