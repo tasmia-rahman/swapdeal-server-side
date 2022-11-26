@@ -19,6 +19,7 @@ async function run() {
     try {
         const categoriesCollection = client.db('swapdealDB').collection('categories');
         const productsCollection = client.db('swapdealDB').collection('products');
+        const usersCollection = client.db('swapdealDB').collection('users');
 
         //Categories
         app.get('/categories', async (req, res) => {
@@ -39,6 +40,20 @@ async function run() {
             const query = { category: category.name };
             const products = await productsCollection.find(query).toArray();
             res.send(products);
+        });
+
+        //Users
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const existingUser = await usersCollection.findOne(filter);
+            if (existingUser) {
+                res.send({ message: 'User already exists' });
+            }
+            else {
+                const result = await usersCollection.insertOne(user);
+                res.send(result);
+            }
         });
     }
     finally {
