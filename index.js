@@ -29,7 +29,7 @@ async function run() {
             res.send(categories);
         });
 
-        //Products
+        //Category products
         app.get('/category/:id', async (req, res) => {
             //get category
             const id = req.params.id;
@@ -42,6 +42,7 @@ async function run() {
             res.send(products);
         });
 
+        //Seller's products
         app.get('/products/:email', async (req, res) => {
             const email = req.params.email;
             const query = { sellerEmail: email };
@@ -123,7 +124,14 @@ async function run() {
             else {
                 sellerInfo = {};
             }
-            res.send({ sellerInfo, isAdmin: user?.role === 'admin', isSeller: user?.role === 'seller', isBuyer: user?.role === 'buyer' });
+
+            if (user.role === 'buyer') {
+                buyerInfo = user;
+            }
+            else {
+                buyerInfo = {};
+            }
+            res.send({ sellerInfo, buyerInfo, isAdmin: user?.role === 'admin', isSeller: user?.role === 'seller', isBuyer: user?.role === 'buyer' });
         })
 
         app.delete('/users/:id', async (req, res) => {
@@ -162,6 +170,13 @@ async function run() {
         });
 
         //Bookings
+        app.get('/bookings/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const products = await bookingsCollection.find(query).toArray();
+            res.send(products);
+        });
+
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
             const query = {
