@@ -20,7 +20,7 @@ async function run() {
         const categoriesCollection = client.db('swapdealDB').collection('categories');
         const productsCollection = client.db('swapdealDB').collection('products');
         const usersCollection = client.db('swapdealDB').collection('users');
-        const bookingsCollection = client.db('doctorsPortal').collection('bookings');
+        const bookingsCollection = client.db('swapdealDB').collection('bookings');
 
         //Categories
         app.get('/categories', async (req, res) => {
@@ -41,6 +41,12 @@ async function run() {
             const query = { category: category.name };
             const products = await productsCollection.find(query).toArray();
             res.send(products);
+        });
+
+        app.post('/products', async (req, res) => {
+            const product = req.body;
+            const result = await productsCollection.insertOne(product);
+            res.send(result);
         });
 
         //Users
@@ -101,21 +107,21 @@ async function run() {
         });
 
         //Bookings
-        // app.post('/bookings', async (req, res) => {
-        //     const booking = req.body;
-        //     console.log(booking);
-        //     const query = {
-        //         email: booking.email,
-        //         // productName: booking.productName
-        //     }
-        //     const alreadyBooked = await bookingsCollection.find(query).toArray();
-        //     if (alreadyBooked.length) {
-        //         const message = "It's already booked!";
-        //         return res.send({ acknowledged: false, message });
-        //     }
-        //     const result = await bookingsCollection.insertOne(booking);
-        //     res.send(result);
-        // });
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            console.log(booking);
+            const query = {
+                email: booking.email
+            }
+            const alreadyBooked = await bookingsCollection.find(query).toArray();
+            if (alreadyBooked.length) {
+                const message = "It's already booked!";
+                return res.send({ acknowledged: false, message });
+            }
+            const result = await bookingsCollection.insertOne(booking);
+            console.log(result);
+            res.send(result);
+        });
 
     }
     finally {
