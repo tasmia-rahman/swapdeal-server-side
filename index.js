@@ -25,8 +25,7 @@ async function run() {
         //Categories
         app.get('/categories', async (req, res) => {
             const query = {}
-            const cursor = categoriesCollection.find(query);
-            const categories = await cursor.toArray();
+            const categories = await categoriesCollection.find(query).toArray();
             res.send(categories);
         });
 
@@ -90,6 +89,13 @@ async function run() {
             const filter = { _id: ObjectId(id) };
             const result = await productsCollection.deleteOne(filter);
             res.send(result);
+        })
+
+        //Advertised Products
+        app.get('/advertisedProducts', async (req, res) => {
+            const query = { sale_status: 'advertised' };
+            const products = await productsCollection.find(query).toArray();
+            res.send(products);
         })
 
         //Users
