@@ -43,11 +43,54 @@ async function run() {
             res.send(products);
         });
 
+        app.get('/products/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { sellerEmail: email };
+            const products = await productsCollection.find(query).toArray();
+            res.send(products);
+
+        });
+
         app.post('/products', async (req, res) => {
             const product = req.body;
+            product.date = Date();
             const result = await productsCollection.insertOne(product);
             res.send(result);
         });
+
+        // app.get('/products/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     console.log(id);
+        //     const filter = { _id: ObjectId(id) };
+        //     const product = await productsCollection.findOne(filter);
+        //     console.log(product);
+        //     if (product.sale_status === 'advertised') {
+        //         const message = "You advertised the product already!";
+        //         return res.send({ acknowledged: false, message });
+        //     }
+        //     // res.send({ acknowledged: true});
+        // });
+
+        app.put('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    sale_status: 'advertised'
+                }
+            }
+            const result = await productsCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+
+        });
+
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await productsCollection.deleteOne(filter);
+            res.send(result);
+        })
 
         //Users
         app.post('/users', async (req, res) => {
@@ -68,7 +111,13 @@ async function run() {
             const email = req.params.email;
             const query = { email: email };
             const user = await usersCollection.findOne(query);
-            res.send({ isAdmin: user?.role === 'admin', isSeller: user?.role === 'seller', isBuyer: user?.role === 'buyer' });
+            if (user.role === 'seller') {
+                sellerInfo = user;
+            }
+            else {
+                sellerInfo = {};
+            }
+            res.send({ sellerInfo, isAdmin: user?.role === 'admin', isSeller: user?.role === 'seller', isBuyer: user?.role === 'buyer' });
         })
 
         app.delete('/users/:id', async (req, res) => {
@@ -109,7 +158,6 @@ async function run() {
         //Bookings
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
-            console.log(booking);
             const query = {
                 email: booking.email
             }
@@ -119,7 +167,6 @@ async function run() {
                 return res.send({ acknowledged: false, message });
             }
             const result = await bookingsCollection.insertOne(booking);
-            console.log(result);
             res.send(result);
         });
 
