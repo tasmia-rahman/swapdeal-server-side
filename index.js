@@ -63,19 +63,6 @@ async function run() {
             res.send(result);
         });
 
-        // app.get('/products/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     console.log(id);
-        //     const filter = { _id: ObjectId(id) };
-        //     const product = await productsCollection.findOne(filter);
-        //     console.log(product);
-        //     if (product.sale_status === 'advertised') {
-        //         const message = "You advertised the product already!";
-        //         return res.send({ acknowledged: false, message });
-        //     }
-        //     // res.send({ acknowledged: true});
-        // });
-
         app.put('/products/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
@@ -119,6 +106,28 @@ async function run() {
             const products = await productsCollection.find(query).toArray();
             res.send(products);
         })
+
+        //Reported Products
+        app.get('/reportedProducts', async (req, res) => {
+            const query = {
+                isReported: 'true'
+            };
+            const products = await productsCollection.find(query).toArray();
+            res.send(products);
+        })
+
+        app.put('/reportedProducts/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    isReported: 'true'
+                }
+            }
+            const result = await productsCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
 
         //Bookings
         app.get('/bookings/:email', async (req, res) => {
@@ -209,8 +218,8 @@ async function run() {
         app.get('/users/sellers/:sellerEmail', async (req, res) => {
             const email = req.params.sellerEmail;
             const filter = { email: email };
-            const seller = await usersCollection.findOne(filter);
-            res.send(seller);
+            const result = await usersCollection.findOne(filter);
+            res.send(result);
         })
 
         // Verify seller
