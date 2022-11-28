@@ -38,7 +38,10 @@ async function run() {
             const category = await categoriesCollection.findOne(filter);
 
             //get category based products
-            const query = { category: category.name };
+            const query = {
+                category: category.name,
+                sale_status: 'available'
+            };
             const products = await productsCollection.find(query).toArray();
             res.send(products);
         });
@@ -55,6 +58,7 @@ async function run() {
         app.post('/products', async (req, res) => {
             const product = req.body;
             product.date = Date();
+            product.sale_status = 'available';
             const result = await productsCollection.insertOne(product);
             res.send(result);
         });
@@ -78,7 +82,7 @@ async function run() {
             const options = { upsert: true };
             const updatedDoc = {
                 $set: {
-                    sale_status: 'advertised'
+                    isAdvertised: 'true'
                 }
             }
             const result = await productsCollection.updateOne(filter, updatedDoc, options);
@@ -108,7 +112,10 @@ async function run() {
 
         //Advertised Products
         app.get('/advertisedProducts', async (req, res) => {
-            const query = { sale_status: 'advertised' };
+            const query = {
+                sale_status: 'available',
+                isAdvertised: 'true'
+            };
             const products = await productsCollection.find(query).toArray();
             res.send(products);
         })
@@ -197,6 +204,13 @@ async function run() {
             const query = { role: 'seller' };
             const sellers = await usersCollection.find(query).toArray();
             res.send(sellers);
+        })
+
+        app.get('/users/sellers/:sellerEmail', async (req, res) => {
+            const email = req.params.sellerEmail;
+            const filter = { email: email };
+            const seller = await usersCollection.findOne(filter);
+            res.send(seller);
         })
 
         // Verify seller
