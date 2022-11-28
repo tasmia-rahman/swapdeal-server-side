@@ -93,12 +93,55 @@ async function run() {
             res.send(result);
         })
 
+        app.put('/product/:productName', async (req, res) => {
+            const productName = req.params.productName;
+            const filter = { name: productName };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    sale_status: 'paid'
+                }
+            }
+            const result = await productsCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
+
         //Advertised Products
         app.get('/advertisedProducts', async (req, res) => {
             const query = { sale_status: 'advertised' };
             const products = await productsCollection.find(query).toArray();
             res.send(products);
         })
+
+        //Bookings
+        app.get('/bookings/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const bookings = await bookingsCollection.find(query).toArray();
+            res.send(bookings);
+        });
+
+        app.get('/booking/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const booking = await bookingsCollection.findOne(query);
+            res.send(booking);
+        })
+
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            const query = {
+                email: booking.email,
+                productName: booking.productName
+            }
+            const alreadyBooked = await bookingsCollection.find(query).toArray();
+            if (alreadyBooked.length) {
+                const message = "It's already booked!";
+                return res.send({ acknowledged: false, message });
+            }
+            const result = await bookingsCollection.insertOne(booking);
+            res.send(result);
+        });
 
         //Users
         app.post('/users', async (req, res) => {
@@ -167,35 +210,6 @@ async function run() {
                 }
             }
             const result = await usersCollection.updateOne(filter, updatedDoc, options);
-            res.send(result);
-        });
-
-        //Bookings
-        app.get('/bookings/:email', async (req, res) => {
-            const email = req.params.email;
-            const query = { email: email };
-            const products = await bookingsCollection.find(query).toArray();
-            res.send(products);
-        });
-
-        app.get('/booking/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const booking = await bookingsCollection.findOne(query);
-            res.send(booking);
-        })
-
-        app.post('/bookings', async (req, res) => {
-            const booking = req.body;
-            const query = {
-                email: booking.email
-            }
-            const alreadyBooked = await bookingsCollection.find(query).toArray();
-            if (alreadyBooked.length) {
-                const message = "It's already booked!";
-                return res.send({ acknowledged: false, message });
-            }
-            const result = await bookingsCollection.insertOne(booking);
             res.send(result);
         });
 
