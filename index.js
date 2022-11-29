@@ -110,8 +110,8 @@ async function run() {
 
         app.post('/products', verifyJWT, verifySeller, async (req, res) => {
             const product = req.body;
-            product.date = Date();
             product.sale_status = 'available';
+            product.date = Date();
             const result = await productsCollection.insertOne(product);
             res.send(result);
         });
