@@ -31,7 +31,6 @@ function verifyJWT(req, res, next) {
         req.decoded = decoded;
         next();
     })
-
 }
 
 async function run() {
@@ -186,11 +185,6 @@ async function run() {
         //Bookings
         app.get('/bookings/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
-            // const decodedEmail = req.decoded.email;
-            // console.log(decodedEmail);
-            // if (email !== decodedEmail) {
-            //     return res.status(403).send({ message: 'forbidden access' });
-            // }
             const query = { email: email };
             const bookings = await bookingsCollection.find(query).toArray();
             res.send(bookings);
@@ -299,7 +293,6 @@ async function run() {
         app.post('/create-payment-intent', async (req, res) => {
             const booking = req.body;
             const price = booking.price;
-            console.log(price);
             const amount = Math.round(price * 100);
 
             const paymentIntent = await stripe.paymentIntents.create({
